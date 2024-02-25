@@ -45,7 +45,6 @@ void AAuraPlayerController::CursorTrace()
 	 * E. Both Actors are valid, and are the same actor
 	 *		- Do nothing
 	 */
-
 	if (LastActor == nullptr)
 	{
 		if (ThisActor != nullptr)

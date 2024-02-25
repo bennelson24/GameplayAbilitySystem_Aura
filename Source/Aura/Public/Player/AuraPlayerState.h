@@ -4,21 +4,24 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
-#include "GameFramework/Character.h"
-#include "AuraCharacterBase.generated.h"
+#include "GameFramework/PlayerState.h"
+#include "AuraPlayerState.generated.h"
 
 // forward declaration
 class UAbilitySystemComponent;
 class UAttributeSet;
 
-UCLASS(Abstract)
-class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInterface
+/**
+ * 
+ */
+UCLASS()
+class AURA_API AAuraPlayerState : public APlayerState, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
+
 public:
-	
-	AAuraCharacterBase();
+	AAuraPlayerState();
 
 	// overriding the interface function to get the ability system component
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -26,11 +29,6 @@ public:
 	UAttributeSet* GetAttributeSet() const {return AttributeSet; }
 
 protected:
-	
-	virtual void BeginPlay() override;
-
-	UPROPERTY(EditAnywhere, Category="Combat")
-	TObjectPtr<USkeletalMeshComponent> Weapon;
 
 	// pointers to the ability system component and attribute set for child classes to override
 	UPROPERTY()

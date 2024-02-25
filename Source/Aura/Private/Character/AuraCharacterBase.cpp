@@ -16,6 +16,12 @@ AAuraCharacterBase::AAuraCharacterBase()
 
 }
 
+// ability system component interface getter function
+UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
+{
+	return AbilitySystemComponent;
+}
+
 
 void AAuraCharacterBase::BeginPlay()
 {
