@@ -23,4 +23,8 @@ public:
 	// overriding the functions inherited from IEnemyInterface
 	virtual void HighlightActor() override;
 	virtual void UnHighlightActor() override;
+
+protected:
+	virtual void BeginPlay() override;
+	
 };

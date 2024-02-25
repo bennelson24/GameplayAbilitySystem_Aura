@@ -15,8 +15,11 @@ AAuraEnemy::AAuraEnemy()
 	// Add values for the ability system and stats component pointers inherited from the parent class and set replication
 	AbilitySystemComponent = CreateDefaultSubobject<UAuraAbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
+	// see game dev notes for the different replication modes: Minimal = AI controlled for multiplayer
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Minimal);
 
 	AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>("AttributeSet");
+	
 	
 }
 
@@ -32,4 +35,12 @@ void AAuraEnemy::UnHighlightActor()
 {
 	GetMesh()->SetRenderCustomDepth(false);
 	Weapon->SetRenderCustomDepth(false);
+}
+
+void AAuraEnemy::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// initializing the ability system component
+	AbilitySystemComponent->InitAbilityActorInfo(this, this);
 }

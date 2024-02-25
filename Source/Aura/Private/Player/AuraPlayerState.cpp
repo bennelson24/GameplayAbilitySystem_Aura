@@ -15,6 +15,8 @@ AAuraPlayerState::AAuraPlayerState()
 	// Add values for the ability system and stats component pointers inherited from the parent class and set replication
 	AbilitySystemComponent = CreateDefaultSubobject<UAuraAbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
+	// see game dev notes for the different replication modes: Mixed = player controlled for multiplayer
+	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
 	AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>("AttributeSet");
 }
