@@ -16,6 +16,9 @@ UOverlayWidgetController* AAuraHUD::GetOverlayWidgetController(const FWidgetCont
 		OverlayWidgetController = NewObject<UOverlayWidgetController>(this, OverlayWidgetControllerClass);
 		OverlayWidgetController->SetWidgetControllerParams(WCParams);
 
+		// creates callback functions for when an attribute changes
+		OverlayWidgetController->BindCallbacksToDependencies();
+
 		return OverlayWidgetController;
 	}
 	return OverlayWidgetController;
@@ -38,8 +41,10 @@ void AAuraHUD::InitOverlay(APlayerController* PC, APlayerState* PS, UAbilitySyst
 	// Using the params to construct the controller using the getter function after we have the params initialized
 	UOverlayWidgetController* WidgetController = GetOverlayWidgetController(WidgetControllerParams);
 
+	// Setting the widget controller, firing off the blueprint events to update the widgets that are part of the HUD
 	OverlayWidget->SetWidgetController(WidgetController);
-
+	// As long as the Widget controller is set --> Then we can broadcast the values
+	WidgetController->BroadcastInitialValues();
 	
 	Widget->AddToViewport();
 }

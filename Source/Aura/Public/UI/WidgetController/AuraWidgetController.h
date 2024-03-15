@@ -13,6 +13,8 @@ Responsible for getting the data from the model and broadcasting it to any widge
 - attribute set
 - player state
 - Player controller
+
+Broadcasts this information to the widget. One sided communication
  */
 
 
@@ -54,6 +56,9 @@ class AURA_API UAuraWidgetController : public UObject
 public:
 	UFUNCTION(BlueprintCallable)
 	void SetWidgetControllerParams (const FWidgetControllerParams& WCParams);
+
+	virtual void BroadcastInitialValues();
+	virtual void BindCallbacksToDependencies();
 
 protected:
 	UPROPERTY(BlueprintReadOnly, Category = "WidgetController")
