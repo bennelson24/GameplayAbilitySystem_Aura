@@ -6,11 +6,45 @@
 #include "UI/WidgetController/AuraWidgetController.h"
 #include "OverlayWidgetController.generated.h"
 
-// broadcast the Attribute change values - declaring a delegate that can broadcast a float.
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChangeSignature, float, NewHealth);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxHealthChangeSignature, float, NewMaxHealth);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnManaChangeSignature, float, NewMana);
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxManaChangeSignature, float, NewMana);
+// struct for what information is passed from the gameplay tags
+/*
+ - Gameplay Tag
+ - Message text
+ - Widget
+ - Image
+*/
+
+USTRUCT(BlueprintType /*Usable as a type in Blueprints */)
+struct FUIWidgetRow : public FTableRowBase /* FTableRowBase is the base class for a row structure */
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FGameplayTag MessageTag = FGameplayTag();
+
+	// FText are user facing texts shown through widgets
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FText Message = FText();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	TSubclassOf<class UAuraUserWidget> MessageWidget;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UTexture2D* Image = nullptr;
+	
+};
+
+
+class UAuraUserWidget;
+
+
+// declaring a delegate that can broadcast a float when an attribute changes.
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttributeChangeSignature, float, NewValue);
+
+// Declaring delegate that can broadcast a widget row when an attribute changes.
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessageWidgetRowSignature, FUIWidgetRow, Row);
+
+
 
 /**
  * 
@@ -25,26 +59,40 @@ public:
 	virtual void BindCallbacksToDependencies() override;
 
 	UPROPERTY(BlueprintAssignable, Category="GAS|Attributes")
-	FOnHealthChangeSignature OnHealthChanged;
+	FOnAttributeChangeSignature OnHealthChanged;
 
 	UPROPERTY(BlueprintAssignable, Category="GAS|Attributes")
-	FOnHealthChangeSignature OnMaxHealthChanged;
+	FOnAttributeChangeSignature OnMaxHealthChanged;
 
 	UPROPERTY(BlueprintAssignable, Category="GAS|Attributes")
-	FOnManaChangeSignature OnManaChanged;
+	FOnAttributeChangeSignature OnManaChanged;
 
 	UPROPERTY(BlueprintAssignable, Category="GAS|Attributes")
-	FOnManaChangeSignature OnMaxManaChanged;
+	FOnAttributeChangeSignature OnMaxManaChanged;
+
+	UPROPERTY(BlueprintAssignable, Category="GAS|Messages")
+	FMessageWidgetRowSignature MessageWidgetRowDelegate;
 	
 	
 
 
 protected:
-	void HealthChanged(const FOnAttributeChangeData& Data) const;
-	void MaxHealthChanged(const FOnAttributeChangeData& Data) const;
-
-	void ManaChanged(const FOnAttributeChangeData& Data) const;
-	void MaxManaChanged(const FOnAttributeChangeData& Data) const;
 	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= "Widget Data")
+	TObjectPtr<UDataTable> MessageWidgetDataTable;
+	
+
+	// template function for returning a data table row when matched to the gameplay tag
+	template<typename T>
+	T* GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag);
 	
 };
+
+// template functions get defined in the header file
+template <typename T>
+T* UOverlayWidgetController::GetDataTableRowByTag(UDataTable* DataTable, const FGameplayTag& Tag)
+{
+	// if the gameplaytag name matches the data table row, return that row
+	return DataTable->FindRow<T>(Tag.GetTagName(), TEXT(""));
+	
+}

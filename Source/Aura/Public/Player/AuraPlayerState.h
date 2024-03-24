@@ -31,7 +31,7 @@ public:
 protected:
 
 	// pointers to the ability system component and attribute set for child classes to override
-	UPROPERTY()
+	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
 
 	UPROPERTY()

@@ -3,6 +3,7 @@
 
 #include "UI/WidgetController/OverlayWidgetController.h"
 
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 
 void UOverlayWidgetController::BroadcastInitialValues()
@@ -14,49 +15,77 @@ void UOverlayWidgetController::BroadcastInitialValues()
 
 	OnManaChanged.Broadcast(AuraAttributeSet->GetMana());
 	OnMaxManaChanged.Broadcast(AuraAttributeSet->GetMaxMana());
-	
-
-	
-	
 }
 
-// creating callback functions for when an attribute changes
+// creating callback functions using Lamda functions for when an attribute changes
 void UOverlayWidgetController::BindCallbacksToDependencies()
 {
+	// Making sure that UAraAttributes can't be null
 	const UAuraAttributeSet* AuraAttributeSet = CastChecked<UAuraAttributeSet>(AttributeSet);
 
 	// Specify which attribute changes-> Then specify which callback function is triggered
-	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		AuraAttributeSet->GetHealthAttribute()).AddUObject(this, &UOverlayWidgetController::HealthChanged);
 
+	/*## Health Change ##*/
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		AuraAttributeSet->GetMaxHealthAttribute()).AddUObject(this, &UOverlayWidgetController::MaxHealthChanged);
-
-
+		AuraAttributeSet->GetHealthAttribute()).AddLambda(
+			[this](const FOnAttributeChangeData& Data)
+			{
+				// when health is changed, broadcast the value for classes that are listening
+				OnHealthChanged.Broadcast(Data.NewValue);
+			}
+		);
+	/*## MaxHealth Change ##*/
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		AuraAttributeSet->GetManaAttribute()).AddUObject(this, &UOverlayWidgetController::ManaChanged);
+		AuraAttributeSet->GetMaxHealthAttribute()).AddLambda(
+			[this](const FOnAttributeChangeData& Data)
+			{
+				// when Maxhealth is changed, broadcast the value for classes that are listening
+				OnMaxHealthChanged.Broadcast(Data.NewValue);
+			}
+		);
 
+	/*## Mana Change ##*/
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
-		AuraAttributeSet->GetMaxManaAttribute()).AddUObject(this, &UOverlayWidgetController::MaxManaChanged);
+		AuraAttributeSet->GetManaAttribute()).AddLambda(
+			[this](const FOnAttributeChangeData& Data)
+			{
+				// when mana is changed, broadcast the value for classes that are listening
+				OnManaChanged.Broadcast(Data.NewValue);
+			}
+		);
+
+	/*## MaxMana Change ##*/
+	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
+		AuraAttributeSet->GetMaxManaAttribute()).AddLambda(
+			[this](const FOnAttributeChangeData& Data)
+			{
+				// when the health is changed, broadcast the value for classes that are listening
+				OnMaxManaChanged.Broadcast(Data.NewValue);
+			}
+		);
 	
-}
 
-void UOverlayWidgetController::HealthChanged(const FOnAttributeChangeData& Data) const
-{
-	OnHealthChanged.Broadcast(Data.NewValue);
-}
+	// when the broadcast is called, the lamda function will fire and recieve the assset tags from the delegate
+	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->EffectAssetTags.AddLambda(
+		[this](const FGameplayTagContainer& AssetTags)
+		{
+	// loop through the tag container, for each tag in the container, execute the code in the curly braces
+		for (const FGameplayTag& Tag: AssetTags)
+			{
 
-void UOverlayWidgetController::MaxHealthChanged(const FOnAttributeChangeData& Data) const
-{
-	OnMaxHealthChanged.Broadcast(Data.NewValue);
-}
-
-void UOverlayWidgetController::ManaChanged(const FOnAttributeChangeData& Data) const
-{
-	OnManaChanged.Broadcast(Data.NewValue);
-}
-
-void UOverlayWidgetController::MaxManaChanged(const FOnAttributeChangeData& Data) const
-{
-	OnMaxManaChanged.Broadcast(Data.NewValue);
+			// Check that the tag is part of the "Messages" tag hierachy
+			//"Message.Healthpotion".MatchesTag("Message") Will return True, "Message".MatchesTag("Message.Healthpotion") will return False
+			FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag(FName("Message"));
+			if(Tag.MatchesTag(MessageTag))
+				{
+					// Check the gameplay tag to see if correseponds to a data table row in DT_MessageWidgetData
+					// Row that will be broadcasted up to the widget
+					const FUIWidgetRow* Row = GetDataTableRowByTag<FUIWidgetRow>(MessageWidgetDataTable, Tag);
+					MessageWidgetRowDelegate.Broadcast(*Row);
+				};
+				
+			}
+		}
+	);
+	
 }

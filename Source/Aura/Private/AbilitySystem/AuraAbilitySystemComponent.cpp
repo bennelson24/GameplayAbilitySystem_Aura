@@ -12,5 +12,13 @@ void UAuraAbilitySystemComponent::AbilityActorInfoSet()
 void UAuraAbilitySystemComponent::EffectApplied(UAbilitySystemComponent* AbilitySystemComponent,
                                                 const FGameplayEffectSpec& EffectSpec, FActiveGameplayEffectHandle ActiveEffectHandle)
 {
-	GEngine->AddOnScreenDebugMessage(1, 8.f, FColor::Blue, FString("Effect Applied"));
+	// create a container to store gameplay tags
+	FGameplayTagContainer TagContainer;
+	// get whatever gameplay tags are applied are store them in the tag container
+	EffectSpec.GetAllAssetTags(TagContainer);
+
+	// any class that binds to effectassettags delegate will recieve the tag container.
+	EffectAssetTags.Broadcast(TagContainer);
+	
+	
 }
